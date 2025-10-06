@@ -82,7 +82,8 @@ def genera():
 
     # Invia le email con link personalizzato
     for giver, info in results.items():
-        link = f"http://localhost:5000/santa/{info['token']}"
+        RENDER_URL = "https://babbo-natale-segreto-tra-cugini.onrender.com" 
+        link = f"{RENDER_URL}/risultato/{giver}"
         invia_email(info["email"], giver, info["destinatario"], link)
 
     return jsonify({"message": "Accoppiamenti generati e email inviate!"})
