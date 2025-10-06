@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Secret Santa tra Cugini 🎄</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Secret Santa tra Cugini 🎁</h1>
+        <p>Inserisci i nomi e le email dei partecipanti:</p>
+
+        <div id="lista"></div>
+
+        <button id="aggiungi">➕ Aggiungi partecipante</button>
+        <button id="genera">🎅 Genera accoppiamenti</button>
+
+        <div id="messaggio"></div>
+    </div>
+
+    <script>
+        const lista = document.getElementById("lista");
+        const aggiungi = document.getElementById("aggiungi");
+        const genera = document.getElementById("genera");
+        const messaggio = document.getElementById("messaggio");
+
+        // Crea un blocco con input nome + email
+        function creaCampo(nome = "", email = "") {
+            const div = document.createElement("div");
+            div.classList.add("partecipante");
+            div.innerHTML = `
+                <input type="text" placeholder="Nome" value="${nome}" required>
+                <input type="email" placeholder="Email" value="${email}" required>
+                <button class="rimuovi">❌</button>
+            `;
+            div.querySelector(".rimuovi").addEventListener("click", () => div.remove());
+            lista.appendChild(div);
+        }
+
+        // Aggiungi partecipante
+        aggiungi.addEventListener("click", () => creaCampo());
+
+        // Alcuni nomi di default
+        creaCampo("Daniel", "daniele.prisco2003@gmail.com");
+        creaCampo("Valery", "vittorioefamily@gmail.com");
+        creaCampo("Giuliesco", "daniele.prisco2003@gmail.com");
+        creaCampo("Giorgita", "daniele.prisco2003@gmail.com");
+
+        // Invia al server per generare gli accoppiamenti
+        genera.addEventListener("click", async () => {
+            const partecipanti = Array.from(lista.querySelectorAll(".partecipante")).map(div => {
+                const [nome, email] = div.querySelectorAll("input");
+                return { nome: nome.value.trim(), email: email.value.trim() };
+            }).filter(p => p.nome && p.email);
+
+            if (partecipanti.length < 2) {
+                messaggio.style.color = "red";
+                messaggio.textContent = "Devi inserire almeno due partecipanti!";
+                return;
+            }
+
+            messaggio.style.color = "black";
+            messaggio.textContent = "Generazione in corso... ⏳";
+
+            try {
+                const res = await fetch("/genera", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ partecipanti })
+                });
+
+                const data = await res.json();
+                messaggio.style.color = "green";
+                messaggio.textContent = data.message + " 🎄";
+            } catch (error) {
+                messaggio.style.color = "red";
+                messaggio.textContent = "Errore nella generazione o invio email 😢";
+            }
+        });
+    </script>
+</body>
+</html>
